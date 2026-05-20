@@ -1,1 +1,11 @@
-.DS_Store
+.env
+.env.*
+*.key
+*.pem
+secrets/
+data/
+*.csv
+*.xlsx
+lsmd_db.py
+__pycache__/
+*.pyc
