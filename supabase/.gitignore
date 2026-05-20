@@ -1,0 +1,9 @@
+.env
+.env.local
+.env.*
+*.key
+*.pem
+secrets/
+data/
+*.csv
+*.xlsx

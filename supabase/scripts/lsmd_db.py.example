@@ -1,0 +1,40 @@
+"""Підключення до Supabase БД через psycopg3.
+
+Копіюй цей файл як `lsmd_db.py` і встав свій connection string.
+Не комітити lsmd_db.py з реальним паролем!
+"""
+
+import os
+import psycopg
+from dotenv import load_dotenv
+
+load_dotenv()
+
+DB_URL = os.getenv('SUPABASE_DB_URL')  # postgresql://user:pass@host:port/db
+
+
+def query(sql, params=None):
+    """Запит до бази, повертає список dict."""
+    with psycopg.connect(DB_URL) as conn:
+        with conn.cursor(row_factory=psycopg.rows.dict_row) as cur:
+            cur.execute(sql, params)
+            return cur.fetchall()
+
+
+def execute(sql, params=None):
+    """DDL/DML, повертає affected_rows."""
+    with psycopg.connect(DB_URL) as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, params)
+            return cur.rowcount
+
+
+if __name__ == '__main__':
+    # Приклад: топ-5 лікарів
+    results = query("""
+        SELECT doctor_id, total_cases, night_cases 
+        FROM doctor_stats 
+        ORDER BY total_cases DESC LIMIT 5
+    """)
+    for r in results:
+        print(r)
