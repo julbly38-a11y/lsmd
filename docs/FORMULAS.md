@@ -612,3 +612,44 @@ ORDER BY admission_date_d
 **Документ актуальний станом на:** 23.05.2026  
 **Джерело:** Supabase БД `wnyfrckxhwujsjcfxqou`  
 **Автор:** Claude + Julien (система ЛСМД)
+
+---
+
+## 13. Важливі фільтри для точності
+
+### 13.1 Виключення плейсхолдера "Лікується"
+
+**Проблема:** Пацієнти зі статусом "Лікується" мають `discharge_date = admission + 10 днів` (плейсхолдер, не реальна виписка).
+
+**Рішення:**
+
+```sql
+-- У всіх запитах з length_of_stay або discharge_date
+WHERE discharge_status <> 'Лікується'
+
+-- Або
+WHERE discharge_date_d IS NOT NULL 
+  AND discharge_status IN ('Виписаний', 'Помер', 'Переведений', 'З поліпшенням', 'Без змін')
+```
+
+### 13.2 Коректні повторні госпіталізації
+
+```sql
+-- v_readmissions з фільтром
+SELECT *
+FROM v_readmissions
+WHERE days_to_readmission >= 0  -- виключити від'ємні (плейсхолдери)
+  AND days_to_readmission <= 365
+```
+
+### 13.3 Реальне середнє ліжко-день
+
+```sql
+-- Без "Лікується"
+SELECT ROUND(AVG(bed_days), 1) AS avg_los_real
+FROM v_case_metrics
+WHERE discharge_status <> 'Лікується'
+```
+
+Детальніше про маркер "10 днів" → [DATABASE.md](DATABASE.md)
+
