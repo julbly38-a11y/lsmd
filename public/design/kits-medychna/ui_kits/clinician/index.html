@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<title>Медична · Clinician</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style>
+  html, body, #root { height: 100%; margin: 0; }
+  body { overflow: hidden; }
+  button { font-family: inherit; }
+  * { box-sizing: border-box; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" src="../_shared/Primitives.jsx"></script>
+<script type="text/babel" src="./Chrome.jsx"></script>
+<script type="text/babel" src="./Patient.jsx"></script>
+<script type="text/babel">
+  const PATIENTS = [
+    { id: 'P-01842', name: 'Олена Коваль',   age: 54, sex: 'Ж', dx: 'Діабет 2 типу',     status: 'Стабільно',      tone: 'positive', lastSeen: '09:12', room: '302', admitted: '21 квіт.' },
+    { id: 'P-01855', name: 'Віктор Мельник', age: 68, sex: 'Ч', dx: 'ІХС · постінфаркт', status: 'Потребує уваги', tone: 'critical', lastSeen: '08:44', room: '308', admitted: '18 квіт.' },
+    { id: 'P-01860', name: 'Ірина Дяченко',  age: 41, sex: 'Ж', dx: 'Гіпертонія',        status: 'В нормі',        tone: 'positive', lastSeen: '10:05', room: '311', admitted: '22 квіт.' },
+    { id: 'P-01867', name: 'Андрій Литвин',  age: 72, sex: 'Ч', dx: 'ХОЗЛ',              status: 'Очікує обстеж.', tone: 'info',     lastSeen: '07:58', room: '304', admitted: '20 квіт.' },
+    { id: 'P-01872', name: 'Марія Шевченко', age: 29, sex: 'Ж', dx: 'Залізодефіцит',     status: 'Гранична',       tone: 'caution',  lastSeen: '10:41', room: '315', admitted: '22 квіт.' },
+    { id: 'P-01878', name: 'Тарас Гнатюк',   age: 35, sex: 'Ч', dx: 'Пневмонія',         status: 'Стабільно',      tone: 'positive', lastSeen: '08:15', room: '306', admitted: '19 квіт.' },
+  ];
+
+  function App() {
+    const [selectedId, setSelectedId] = React.useState('P-01842');
+    const patient = PATIENTS.find(p => p.id === selectedId);
+    return (
+      <div style={{ height: '100%', display: 'flex', background: 'var(--paper-2)' }}>
+        <Sidebar active="patients" />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          <TopBar
+            breadcrumbs={['Клінічна робота', 'Пацієнти']}
+            title="Пацієнти"
+            subtitle={`Обхід · ${new Date().toLocaleDateString('uk-UA', { weekday: 'long', day: 'numeric', month: 'long' })}`}
+            actions={<>
+              <SearchBar placeholder="Прізвище або ID пацієнта" />
+              <Button variant="ghost" size="md" icon="bell" />
+              <Button variant="primary" size="md" icon="plus">Новий пацієнт</Button>
+            </>}
+          />
+          <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
+            <PatientList patients={PATIENTS} selectedId={selectedId} onSelect={setSelectedId} />
+            <PatientDetail patient={patient} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
