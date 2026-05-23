@@ -6,7 +6,6 @@ secrets/
 data/
 *.csv
 *.xlsx
-lsmd_db.py
 __pycache__/
 *.pyc
 
@@ -15,3 +14,4 @@ node_modules/
 .next/
 out/
 .netlify/
+scripts/.env
