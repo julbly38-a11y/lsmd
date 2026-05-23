@@ -1,0 +1,15 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="_card.css"></head>
+<body class="card">
+<div class="label">SQL block · collapsible, mono, --bg2 fill</div>
+<div style="max-width:560px">
+  <button style="background:none;border:none;font-size:11px;color:#9c9890;cursor:pointer;font-family:'IBM Plex Mono',monospace;padding:0;margin-bottom:8px">▲ сховати SQL</button>
+  <pre style="margin:0;padding:12px;background:#eeecea;border-radius:6px;font-size:12px;font-family:'IBM Plex Mono',monospace;color:#6b6760;white-space:pre-wrap;line-height:1.5">SELECT department_name, COUNT(*) AS count
+FROM encounters e
+JOIN departments d ON e.dept_admission_id = d.department_id
+WHERE discharge_status = 'Помер'
+GROUP BY department_name
+ORDER BY count DESC
+LIMIT 50</pre>
+</div>
+</body></html>
