@@ -1,70 +1,136 @@
-# ЛСМД Python Toolkit
+# LSMD Python Toolkit
 
-Інструменти для роботи з базою даних лікарні через psycopg (прямий PostgreSQL).
+> Інтегрована система для роботи з Supabase БД, GitHub, Netlify + автоматична економія токенів
 
-## Встановлення
+## 🚀 Швидкий старт
+
+### 1. Встановлення
 
 ```bash
-pip install "psycopg[binary]>=3.2.0" python-dotenv requests
+cd scripts/
+pip install -r requirements.txt
 ```
 
-## Налаштування
+### 2. Налаштування
 
-1. Скопіюй `.env.example` як `.env`:
+Створіть `.env`:
+
 ```bash
 cp .env.example .env
+nano .env  # додайте реальні credentials
 ```
 
-2. Вставte пароль БД (Supabase Dashboard → Settings → Database → Connection string):
-```
-SUPABASE_DB_URL=postgresql://postgres:[ТВІЙ_ПАРОЛЬ]@db.wnyfrckxhwujsjcfxqou.supabase.co:5432/postgres
-```
+### 3. Базове використання
 
-## Скрипти
-
-| Файл | Призначення |
-|------|------------|
-| `lsmd_db.py` | Ядро підключення (query, execute, table_count) |
-| `analytics.py` | Готові аналітичні запити (захворюваність, лікарі, відділення) |
-| `backup.py` | Бекап таблиць у CSV перед небезпечними операціями |
-| `geocode_localities.py` | Геокодування населених пунктів через OSM Nominatim |
-
-## Приклади
-
-### Перевірка з'єднання
 ```bash
-python lsmd_db.py
+# Статистика БД
+python cli.py db stats
+
+# Виконати запит
+python cli.py db query "SELECT * FROM departments LIMIT 5" --preview
+
+# Оцінити токени
+python cli.py tokens estimate "SELECT * FROM lsmd"
 ```
 
-### Аналітика
+---
+
+## 📦 Модулі
+
+### `unified_client.py` — єдиний інтерфейс
+
 ```python
-from analytics import morbidity_by_chapter, doctor_profile, top_doctors
+from unified_client import get_db, get_github, get_netlify
 
-# Захворюваність по главах МКХ-10
-for r in morbidity_by_chapter()[:5]:
-    print(f"{r['letters']:5} {r['chapter'][:40]:40} {r['pct']}%")
-
-# Профіль лікаря
-profile = doctor_profile(912)
-print(profile['stats'])
-
-# Топ лікарів за випадками
-for doc in top_doctors(limit=10):
-    print(f"{doc['full_name']}: {doc['total_cases']} випадків")
+# База даних (з автоматичним token tracking)
+db = get_db()
+rows = db.query("SELECT * FROM departments")
+print(db.get_stats())  # статистика токенів
 ```
 
-### Бекап (перед небезпечними операціями)
+### `token_counter.py` — оцінка токенів
+
+**Автоматичне** через `get_db()` або **ручне**:
+
+```python
+from token_counter import estimate_query, estimate_response
+
+tokens = estimate_query("SELECT * FROM lsmd")
+```
+
+### `analytics.py` — готові запити
+
+```python
+from analytics import hospital_summary, mortality_by_department
+
+summary = hospital_summary(db)
+```
+
+### `cli.py` — головний entry point
+
+Всі команди в одному місці (див. нижче).
+
+---
+
+## 💻 CLI Commands
+
+### Database
 ```bash
-python backup.py                 # ключові таблиці
-python backup.py --all           # усі таблиці
-python backup.py --table lsmd    # одна таблиця
+python cli.py db stats                    # статистика
+python cli.py db tables                   # список таблиць
+python cli.py db query "SQL" --preview    # запит + перегляд
 ```
 
-### Геокодування
+### GitHub
 ```bash
-python geocode_localities.py
+python cli.py github repos       # репозиторії
+python cli.py github info lsmd   # інфо про репо
 ```
 
-## Документація
+### Netlify
+```bash
+python cli.py netlify sites              # сайти
+python cli.py netlify deploy nobodybly   # деплой
+```
 
-Повна структура БД та правила безпеки: [docs/DATABASE.md](../docs/DATABASE.md)
+### Analytics
+```bash
+python cli.py analytics mortality   # летальність по відділеннях
+```
+
+### Backup
+```bash
+python cli.py backup lsmd --output ./backups
+```
+
+### Tokens
+```bash
+python cli.py tokens estimate "SELECT * FROM lsmd" --rows 1000
+```
+
+---
+
+## ⚡ Token Optimization
+
+**Автоматично:**
+- Попередження при >8000 токенів
+- Статистика використання
+- Рекомендації оптимізації
+
+**Принципи:**
+- `SELECT columns` замість `SELECT *`
+- Завжди `LIMIT` якщо не потрібні всі рядки
+- `GROUP BY` для агрегації
+- `COUNT(*)` для підрахунку
+
+---
+
+## 📚 Документація
+
+- **[FORMULAS.md](../docs/FORMULAS.md)** — 80+ формул VIEW
+- **[DATABASE.md](../docs/DATABASE.md)** — структура БД
+
+---
+
+**Проєкт:** ЛСМД (Чернівці)  
+**Оновлено:** 24.05.2026
