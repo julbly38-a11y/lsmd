@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
-"""Геокодування населених пунктів (localities) через OSM Nominatim.
+"""
+geocode_localities.py — геокодування населених пунктів через OSM Nominatim.
 
-Вимоги: pip install psycopg[binary] requests
-Використання: встав SUPABASE_DB_URL, запусти python geocode_localities.py
+ВИМОГИ: pip install "psycopg[binary]>=3.2.0" requests python-dotenv
+ВИКОРИСТАННЯ: встав SUPABASE_DB_URL у .env, запусти python geocode_localities.py
 Nominatim: 1 запит/сек, ~40 хв на всі н.п.
 """
 import os, time, requests, psycopg
+from dotenv import load_dotenv
 
-DB_URL = os.getenv('SUPABASE_DB_URL', 'postgresql://postgres:[PASSWORD]@db.wnyfrckxhwujsjcfxqou.supabase.co:5432/postgres')
+load_dotenv()
+DB_URL = os.getenv('SUPABASE_DB_URL')
 REGION_FILTER = None  # 'Чернівецька' або None для всіх
 H = {'User-Agent': 'LSMD-Geocoder/1.0'}
 PAUSE = 1.1
@@ -21,7 +24,8 @@ def geocode(city, district, region):
             if r.status_code==200 and r.json():
                 d = r.json()[0]
                 return float(d['lat']), float(d['lon'])
-        except Exception: pass
+        except Exception:
+            pass
         time.sleep(PAUSE)
     return None, None
 
@@ -38,9 +42,11 @@ def main():
         if lat:
             cur.execute('UPDATE localities SET latitude=%s,longitude=%s,geocoded_at=now() WHERE id=%s',(lat,lng,lid))
             conn.commit()
-            print(f'[{i}/{len(rows)}] {city} OK')
+            print(f'[{i}/{len(rows)}] {city} OK {lat:.4f},{lng:.4f}')
         else:
             print(f'[{i}/{len(rows)}] {city} NOTFOUND')
     cur.close(); conn.close()
+    print('Готово.')
 
-if __name__=='__main__': main()
+if __name__=='__main__':
+    main()
