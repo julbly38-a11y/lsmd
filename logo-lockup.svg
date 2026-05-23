@@ -1,0 +1,171 @@
+# ЛСМД Design System
+
+Editorial design system for **ЛСМД — Лікарня Швидкої Медичної Допомоги** (Hospital of Emergency Medical Care, Чернівці). A medical-analytics platform built on top of a real PostgreSQL/Supabase database of **110,206 hospitalizations** over five+ years.
+
+Visual language: warm paper, near-black ink, IBM Plex throughout, hairline borders, **one chromatic accent — medical red `#c0392b`** used sparingly for brand mark, primary CTAs, active navigation, and links.
+
+---
+
+## Company / product context
+
+ЛСМД — інформаційна компанія / medical-analytics company. The flagship product is a hospital dashboard with an in-product AI assistant that translates natural-language questions into SQL.
+
+| | |
+|---|---|
+| **Партнер-лікарня** | Чернівці, Україна — 88% пацієнтів з Чернівецької області |
+| **Період даних** | 2020-01-31 → 2026-05-01 (5+ years) |
+| **Госпіталізацій** | 110,206 (з них 90% Екстренна, 10% Планова) |
+| **Унікальних пацієнтів** | 67,856 |
+| **Працівників** | 868 (з doctor_stats заповнено 265 лікарів) |
+| **Відділень** | 20 |
+| **Унікальних кодів операцій** | 7,320 (49,919 операційних кейсів) |
+| **Локацій** | 2,618 населених пунктів |
+| **МКХ-10** | 22 розділи · 220 блоків |
+| **Стек** | Supabase (PostgreSQL 17) · Next.js · Netlify |
+| **AI-провайдери** | Groq · Gemini · OpenAI · Anthropic |
+
+### Sources of truth
+- **Supabase project `wnyfrckxhwujsjcfxqou` (LSMD)** — live database. Schema and all numbers in the design come from it.
+- **GitHub `julbly38-a11y/lsmd`** — this design system repo (Netlify-deployed).
+- **GitHub `julbly38-a11y/hospital-agent`** — Next.js + Supabase prototype for the AI chat. Files in `scraps/`.
+
+---
+
+## Index
+
+```
+README.md                ← you are here
+SKILL.md                 ← agent-skill manifest
+colors_and_type.css      ← tokens (incl. medical red --brand)
+assets/                  ← logo mark, iconography notes
+preview/                 ← design-system cards (Colors / Type / Spacing / Brand / Components)
+ui_kits/
+  asystent/              ← AI chat surface (the in-dashboard feature)
+  dashboard/             ← marketing site + dashboard shell + Asystent tab
+supabase/                ← schema reference & migrations folder
+scraps/                  ← raw imports from hospital-agent
+index.html               ← landing index for Netlify
+netlify.toml
+```
+
+---
+
+## Real database schema (the source of truth)
+
+The dashboard mirrors these tables one-to-one. Read this section before changing any KPI label.
+
+| Table | Rows | Purpose |
+|---|---|---|
+| **`lsmd`** | 110,206 | Encounters / госпіталізації. Key cols: `id_case`, `admission_type` (Екстренна/Планова), `admission_department`, `current_department`, `discharge_department`, `icd_admission`, `icd_primary`, `doc_name`, `doctor_id`, `discharge_status`, `operation_id`, `length_of_stay`, `admission_ts`, `discharge_ts`, `day_type` (будній/вихідний), `shift_time`, `patient_id` |
+| **`patients_best`** | 72,293 | Patients registry. Cols: `patient_id`, `full_name`, `short_name`, `patient_name`, `parental`, `age`, `gender`, `locality`, `district`, `region`, `category`, `locality_id` → FK `localities.id` |
+| **`empl`** | 868 | Employees. Cols: `name_id`, `full_name`, `specialization`, `department`, `department_id` → FK `departments.id`, `position`, `emp_status` |
+| **`departments`** | 20 | Real departments with `dept_name`, `staff_count`, `doctors_count`, `head_empl_id`, `category_id`, `block_id` |
+| **`doctor_stats`** | 265 | Per-doctor materialized view: `total_cases`, `day_cases`, `night_cases`, `weekend_cases`, `unique_patients`, `deaths`, `improved`, `avg_los`, `first_case`, `last_case` |
+| **`icd_chapters`** | 22 | Top-level МКХ-10 chapters (Roman numerals, letter ranges) |
+| **`icd_blocks`** | 220 | МКХ-10 blocks (e.g. K00–K93). Joined to chapters via `chapter_id` |
+| **`icd_10`** | varies | ICD codes 3 levels deep, generated `icd_code`, `usage_count`, `block_id` |
+| **`operations`** | 7,320 | Unique operation codes with `cases_count` |
+| **`localities`** | 2,618 | Cities/districts with `latitude`, `longitude` for map view |
+| **`dept_transfers_matrix`** | 143 | Sparse matrix of patient transfers between departments + `avg_los` |
+| **`doctor_shifts`** | (per shift) | Daily shift summaries |
+| `parasit` `neoplastics` `blood` `endo` `lor` `krovoobig` `resp` `gastro` `skin` `osteo` `uro` `pregnan` `perinatal` `teratos` `deviation` `traum` `accidental` | 0 | Nosology lookup tables per МКХ chapter — not yet populated |
+
+### Real KPI numbers (do not invent — these come from SQL)
+- Летальність: **2.06%** (2,267 / 110,206)
+- Виписки з поліпшенням: **94.4%** (104,081 / 110,206)
+- Сер. ліжко-день: **11.4** (для `length_of_stay`)
+- Екстрена / Планова: **90.5% / 9.5%**
+- Будній / Вихідний: **90.1% / 9.9%**
+- Хір. активність: **45.3%** (49,919 операційних кейсів)
+- Пік годин: **10:00** (21,667), пік дня тижня: **понеділок** (23,176)
+- Топ-відділення: Хір. №1 (15,329), Урологічне (13,440), Центр невідкладної неврології (11,952)
+- Топ-діагноз: **K86.1 Інший хронічний панкреатит** — 5,755 випадків
+
+---
+
+## CONTENT FUNDAMENTALS
+
+**Language.** Ukrainian first. Russian accepted on input in the AI tab.
+
+**Voice & person — two registers:**
+- **Marketing pages** (Home, About, Pricing): slightly warmer second-person plural / inclusive "we" — `Ми перетворюємо медичні дані...`. Still restrained — short declarative sentences, no exclamation marks, no hype words, no marketing puffery. One human sentence per section, then the proof.
+- **Dashboard / AI tab**: imperative second-person familiar — `Запитуйте...`, `Натисни...`. Reads like the engineering pair-programmer it is.
+
+**Tone.** Quiet confidence. The product proves itself with numbers, not adjectives. `110,206 госпіталізацій` does more work than any headline could.
+
+**Casing.**
+- Sentence case for prose, headlines, buttons.
+- lowercase for mono microcopy: `показати SQL`, `безкоштовно`.
+- UPPERCASE + 0.08em tracking, Plex Mono 500 — the signature label style for sidebar groups, KPI captions, table headers: `АНАЛІТИКА`, `ІНСТРУМЕНТИ`, `СЕСІЯ`, `ЛЕТАЛЬНІСТЬ`.
+- **ЛСМД** always uppercase.
+
+**Punctuation.** Em-dash `—` is the joiner. Middle-dot `·` separates metadata. `○` empty result. `—` empty cell. Σ for totals. No emoji.
+
+**Numbers.** Plex Mono 300 at large sizes for hero numbers. en-US locale separator: `110,206`. Currency: `$0.0042` for sub-cent.
+
+---
+
+## VISUAL FOUNDATIONS
+
+### Palette
+**Single chromatic accent — medical red.** Reserved for: brand mark (`+`), primary CTAs, active nav links, peak bar in charts, featured pricing tier, MKX chapter letter, "Помер" status, link underlines. Most of the UI remains monochrome.
+
+| Token | Hex | Use |
+|---|---|---|
+| `--bg` | `#f5f4f0` | Page — warm paper |
+| `--bg2` | `#eeecea` | Code, table headers |
+| `--surface` | `#ffffff` | Cards, sidebar, inputs |
+| `--border` | `#d8d5cf` | Hairline dividers |
+| `--text` | `#1a1917` | Primary ink |
+| `--text2` | `#6b6760` | Secondary |
+| `--text3` | `#9c9890` | Tertiary, labels |
+| **`--brand`** | **`#c0392b`** | **Medical red — logo, CTAs, links, peaks** |
+| `--brand-hover` | `#a93222` | CTA hover |
+| `--brand-soft` | `#fbecea` | Soft brand-tinted badges |
+| `--green` | `#16a34a` | "З поліпшенням" / success / "безкоштовно" |
+| `--amber` | `#b45309` | "З погіршенням" / warning |
+
+**Accent rules:** max **one red element per visible row** — never several. Red never sits behind text-as-text. The chat surface keeps monochrome inverted-ink CTAs to preserve the existing product's calm — brand red appears in the dashboard chrome around it.
+
+### Typography
+- **IBM Plex Sans** — body, prose, examples (300/400/500)
+- **IBM Plex Mono** — display headings, labels, metadata, table cells, code, KPI numbers, logo wordmark (300/400/500)
+- The light-weight mono headline (Plex Mono 300, 28–56px) is the editorial signature.
+
+### Spacing — 4-pt grid
+Common rhythms: 16/20/24/32/40px. Sidebar 260px. Marketing hero 80px vertical.
+
+### Surfaces, borders, radii, shadows
+- Flat fills only — **no gradients, no patterns, no imagery**
+- One border width: `1px`, one color: `--border`
+- Radii: `4px` (tables), `6px` (chips, cards), `8px` (inputs, buttons)
+- Asymmetric chat bubbles: `18 18 4 18` user, `4 18 18 18` agent
+- **Zero shadows.** Elevation = white surface + 1px border.
+
+### Animation
+`0.15s`, `cubic-bezier(0.4, 0, 0.2, 1)`. Only keyframe in production is the typing-dot pulse.
+
+---
+
+## ICONOGRAPHY
+
+Brand has **no icon set**. Icons are typographic — single Plex Mono characters: `+ → ↓ ↑ Σ ▼ ▲ ○ · ! — ◆ ▦ ◐ ⌘ ✚ ⚙`.
+
+If a real icon is genuinely needed, use **Lucide** (stroke 1.5, 16px, `currentColor`). Flag it as a substitution.
+
+---
+
+## CAVEATS
+
+- **Sub-table population.** 17 nosology tables (`parasit`, `neoplastics`, `blood`, etc.) exist but are empty. The dashboard doesn't show them yet.
+- **`lsmd_doctors` is empty.** Doctor identity lives in `empl` + `doctor_stats`. The `doctor_id` column in `lsmd` is sparsely populated — most rows reference doctors by `doc_name` string only. If a clean join is needed, populate `lsmd_doctors`.
+- **Encoding artifacts.** A handful of rows have garbled Cyrillic (`Жі��оча`, `З поліп��енням`). Trivial counts (<10 rows per variant). Pre-process before charting.
+- **No real chart library yet** — mocks use CSS/SVG bars. Confirm Recharts / Visx / D3 before production.
+- **AI Asystent chat keeps monochrome CTAs** by design (preserve calm of existing product). Brand red lives in dashboard chrome around it.
+
+## **What I'd like from you next**
+
+1. **Підтвердити цей дизайн** — або сказати які саме розрізи додати (геокарта по `localities`, матриця переходів по `dept_transfers_matrix`, нічні зміни по `doctor_shifts`).
+2. **Підключити дашборд до live Supabase** — поки що цифри захардкоджені; готовий зробити справжній fetch.
+3. **Заповнити нозологічні таблиці** — або сказати, що ця ієрархія залишиться плоскою.
+4. **Налаштувати `netlify.toml`** — зараз редиректить на `/preview/index.html`, який не існує. Має бути `/` → `/index.html`.
