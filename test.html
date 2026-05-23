@@ -255,15 +255,15 @@
           <ul class="endpoint-list">
             <li onclick="selectEndpoint('admissions-today')">
               📅 Admissions Today
-              <code>GET /.netlify/functions/admissions-today?date=YYYY-MM-DD</code>
+              <code>GET /functions/v1/admissions-today?date=YYYY-MM-DD</code>
             </li>
             <li onclick="selectEndpoint('doctor-stats')">
               👨‍⚕️ Doctor Stats
-              <code>GET /.netlify/functions/doctor-stats?period=7d</code>
+              <code>GET /functions/v1/doctor-stats?period=7d</code>
             </li>
             <li onclick="selectEndpoint('case-detail')">
               📋 Case Detail
-              <code>GET /.netlify/functions/case-detail?case_id=123</code>
+              <code>GET /functions/v1/case-detail?case_id=123</code>
             </li>
           </ul>
         </div>
@@ -416,6 +416,12 @@
   </div>
 
   <script>
+    // Supabase Edge Functions config (anon key — публічний за дизайном, захист через RLS)
+    const SUPABASE_URL = 'https://wnyfrckxhwujsjcfxqou.supabase.co';
+    const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndueWZyY2t4aHd1anNqY2Z4cW91Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyODQ0MTEsImV4cCI6MjA5MTg2MDQxMX0.S_fAEpRPpeJ8t5ggUa_4cNXDMrTEBeKtPPBnHJQOk0c';
+    const FN_BASE = `${SUPABASE_URL}/functions/v1`;
+    const FN_HEADERS = { 'Authorization': `Bearer ${ANON_KEY}`, 'apikey': ANON_KEY };
+
     let currentEndpoint = null;
     let stats = { requests: 0, errors: 0, times: [] };
     const pageLoadTime = performance.now();
@@ -449,7 +455,7 @@
       const param1 = document.getElementById('param1').value;
       const param2 = document.getElementById('param2').value;
 
-      let url = `/.netlify/functions/${currentEndpoint}`;
+      let url = `${FN_BASE}/${currentEndpoint}`;
       let params = [];
 
       if (currentEndpoint === 'admissions-today' && param1) {
@@ -470,7 +476,7 @@
       try {
         responseDiv.innerHTML = '<div class="status loading"><span class="loader"></span>Loading...</div>';
 
-        const res = await fetch(url);
+        const res = await fetch(url, { headers: FN_HEADERS });
         const time = Date.now() - startTime;
         stats.times.push(time);
         stats.requests++;
@@ -517,7 +523,7 @@
       for (let i = 0; i < count; i++) {
         const start = Date.now();
         try {
-          const res = await fetch('/.netlify/functions/admissions-today');
+          const res = await fetch(`${FN_BASE}/admissions-today`, { headers: FN_HEADERS });
           times.push(Date.now() - start);
         } catch (e) {
           times.push(-1);
