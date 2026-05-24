@@ -179,9 +179,9 @@ export default function Home() {
             ))}
           </div>
           <div className={styles.sideFooter}>
-            <p>20,491 госпіталізацій</p>
-            <p>15,427 пацієнтів</p>
-            <p>13 відділень · 202 лікарі</p>
+            <p>110,206 госпіталізацій</p>
+            <p>72,293 пацієнти</p>
+            <p>20 відділень · 265 лікарів</p>
 
             <div style={{marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--border)', fontSize: '10px', lineHeight: '1.8'}}>
               <p style={{color: 'var(--text3)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px'}}>Сесія</p>
