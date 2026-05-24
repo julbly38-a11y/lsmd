@@ -41,13 +41,27 @@ JOIN departments d ON l.department_id = d.dept_id
 GROUP BY d.dept_name
 ORDER BY всього DESC
 
+📌 "Пікові години госпіталізацій":
+SELECT EXTRACT(HOUR FROM admission_date) as година, COUNT(*) as count
+FROM lsmd
+GROUP BY година
+ORDER BY count DESC
+
+📌 "Навантаження по днях тижня":
+SELECT TO_CHAR(admission_date, 'Day') as день, COUNT(*) as count
+FROM lsmd
+GROUP BY день
+ORDER BY count DESC
+
 ПРАВИЛА:
 
 - Відповідай ТІЛЬКИ валідним JSON: {"sql": "SELECT ...", "explanation": "Опис"}
 - Тільки SELECT, без крапки з комою
 - LIMIT 50 для списків
 - Для пошуку по діагнозах використовуй JOIN з icd_10
-- discharge_status IN ('Помер', 'Виписаний', 'Переведений')`
+- discharge_status IN ('Помер', 'Виписаний', 'Переведений')
+- Дати: EXTRACT(HOUR FROM admission_date), TO_CHAR(admission_date, 'YYYY-MM')
+- admission_date та discharge_date це TIMESTAMP типи`
 
 const PROVIDERS = {
   groq: {
