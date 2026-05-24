@@ -21,7 +21,7 @@ function Sidebar({ examples, onPick, stats, limits, provider }) {
 
       <div className="sideFooter">
         <p>110,206 госпіталізацій</p>
-        <p>67,856 унік. пацієнтів</p>
+        <p>72,293 пацієнти</p>
         <p>20 відділень · 265 лікарів</p>
         <p style={{marginTop:'4px',color:'var(--text3)'}}>2020 → 05.2026 · 22 розділи МКХ</p>
 
